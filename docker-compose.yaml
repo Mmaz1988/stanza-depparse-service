@@ -1,0 +1,9 @@
+services:
+  stanza:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - '8002:8002'
+    volumes:
+        - ./models:/models
