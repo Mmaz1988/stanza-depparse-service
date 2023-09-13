@@ -7,12 +7,9 @@ app = FastAPI()
 
 class Sentence_payload(BaseModel):
     sentence: str
-
-# init
-stanza.download('en', 'models')
+    language: str
 
 def freeMemory(args):
-    print('Freeing up Memory')
     for arg in args:
         del arg
     del args
@@ -24,7 +21,8 @@ async def health():
 
 @app.post('/parse')
 async def depParse(payload: Sentence_payload, background_tasks: BackgroundTasks):
-    parser = stanza.Pipeline(lang='en', processors='tokenize, pos, lemma, depparse', dir='models')
+    stanza.download(payload.language, 'models')
+    parser = stanza.Pipeline(lang=payload.language, processors='tokenize, pos, lemma, depparse', dir='models')
     doc: stanza.Document = parser(payload.sentence)
     background_tasks.add_task(freeMemory, [doc, parser])
     return doc.to_dict()
