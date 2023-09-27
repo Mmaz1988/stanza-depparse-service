@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 import stanza, datetime
 from pydantic import BaseModel
-from fastapi_utils.tasks import repeat_every
+from fastapi_restful.tasks import repeat_every
+from stanza.utils.conll import CoNLL
 
 app = FastAPI()
 
@@ -27,9 +28,9 @@ async def health():
 
 @app.post('/parse')
 async def depParse(payload: Sentence_payload):
-    if payload.language not in loadedLanguages:
-        stanza.download(payload.language, 'models')
-        loadedLanguages.add(payload.language)
+    # if payload.language not in loadedLanguages:
+    #     stanza.download(payload.language, 'models')
+    #     loadedLanguages.add(payload.language)
     if payload.language not in loadedParsers.keys():
         parser = stanza.Pipeline(lang=payload.language, processors='tokenize, mwt, pos, lemma, depparse', dir='models')
         loadedParsers[payload.language] = [parser, datetime.datetime.now()]
@@ -37,7 +38,8 @@ async def depParse(payload: Sentence_payload):
         parser = loadedParsers[payload.language][0]
         loadedParsers[payload.language][1] = datetime.datetime.now()
     doc: stanza.Document = parser(payload.sentence)
-    return doc.to_dict()
+    # return doc.to_dict()
+    return "{:C}".format(doc)
 
 # scheduled task that unloads non recently used parsers
 @app.on_event('startup')
