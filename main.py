@@ -3,8 +3,21 @@ import stanza, datetime
 from pydantic import BaseModel
 from fastapi_restful.tasks import repeat_every
 from stanza.utils.conll import CoNLL
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Origins for CORS handling
+origins = ['*']
+
+# add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # While stanza detects if a language is already downloaded and does notdownload it again if not necessary, the detection does take a significant amount of time.
 # To save this time a Set of already downloaded languages that only persists at runtime is used to quickly check whether a language is already downloaded.
