@@ -3,6 +3,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
+      args:
+        - platform=linux/amd
     ports:
       - '8002:8002'
     volumes:
