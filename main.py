@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 import stanza, datetime
+import json
 from pydantic import BaseModel
 from fastapi_restful.tasks import repeat_every
 from stanza.utils.conll import CoNLL
 from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
@@ -51,6 +53,42 @@ async def depParse(payload: Sentence_payload):
         parser = loadedParsers[payload.language][0]
         loadedParsers[payload.language][1] = datetime.datetime.now()
     doc: stanza.Document = parser(payload.sentence)
+
+    #create a json object that represents the dependency parse as a graph
+    # a graph is a list of graph elements, where each element is a dict
+    graph = []
+    for sentence in doc.sentences:
+        words = []
+        for word in sentence.words:
+            graph_element = {}
+            graph_element['id'] = word.id
+            graph_element['node_type'] = "input"
+            avps = {}
+            avps['text'] = word.text
+            avps['lemma'] = word.lemma
+            avps['upos'] = word.upos
+            # if features are not null
+            if word.feats != None:
+                features = word.feats.split('|')
+                for feature in features:
+                    if feature != '_':
+                        key, value = feature.split('=')
+                        avps[key] = value
+
+            graph_element['avps'] = avps
+            graph.append({"data" : graph_element})
+
+        for dependency in sentence.dependencies:
+            graph_element = {}
+            graph_element['id'] = "rid" + str(dependency[0].id) + "+" + str(dependency[2].id)
+            graph_element['edge_type'] = "edge"
+            graph_element['source'] = dependency[0].id
+            graph_element['target'] = dependency[2].id
+            graph_element['label'] = dependency[1]
+            graph.append({"data" : graph_element})
+
+    print("{:C}".format(doc))
+    print(json.dumps(graph))
     # return doc.to_dict()
     return "{:C}".format(doc)
 
