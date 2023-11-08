@@ -4,6 +4,6 @@ services:
       dockerfile: Dockerfile
       context: .
       args:
-        - platform=linux/amd
+        - platform=linux/amd64
     ports:
       - '8002:8002'

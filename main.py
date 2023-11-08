@@ -56,12 +56,16 @@ async def depParse(payload: Sentence_payload):
 
     #create a json object that represents the dependency parse as a graph
     # a graph is a list of graph elements, where each element is a dict
-    graph = []
+    stgraph = []
     for sentence in doc.sentences:
         words = []
+        root_element = {}
+        root_element['id'] = "0"
+        root_element['node_type'] = "input"
+        stgraph.append({"data" : root_element})
         for word in sentence.words:
             graph_element = {}
-            graph_element['id'] = word.id
+            graph_element['id'] = str(word.id)
             graph_element['node_type'] = "input"
             avps = {}
             avps['text'] = word.text
@@ -75,22 +79,29 @@ async def depParse(payload: Sentence_payload):
                         key, value = feature.split('=')
                         avps[key] = value
 
-            graph_element['avps'] = avps
-            graph.append({"data" : graph_element})
+            graph_element['avp'] = avps
+            stgraph.append({"data" : graph_element})
 
         for dependency in sentence.dependencies:
             graph_element = {}
             graph_element['id'] = "rid" + str(dependency[0].id) + "+" + str(dependency[2].id)
             graph_element['edge_type'] = "edge"
-            graph_element['source'] = dependency[0].id
-            graph_element['target'] = dependency[2].id
+            graph_element['source'] = str(dependency[0].id)
+            graph_element['target'] = str(dependency[2].id)
             graph_element['label'] = dependency[1]
-            graph.append({"data" : graph_element})
+            stgraph.append({"data" : graph_element})
 
-    print("{:C}".format(doc))
-    print(json.dumps(graph))
+
+    graph_elements = {"graphElements" : stgraph}
+    conllu = CoNLL.convert_dict(doc.to_dict())
+
+    stanzaAnnotation = {"graph" : graph_elements, "conllu" : conllu}
+
+    print(conllu)
+    print(json.dumps(stgraph))
+
     # return doc.to_dict()
-    return "{:C}".format(doc)
+    return json.dumps(stanzaAnnotation)
 
 # scheduled task that unloads non recently used parsers
 @app.on_event('startup')
