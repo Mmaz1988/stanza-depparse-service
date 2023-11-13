@@ -93,11 +93,11 @@ async def depParse(payload: Sentence_payload):
 
 
     graph_elements = {"graphElements" : stgraph}
-    conllu = CoNLL.convert_dict(doc.to_dict())
 
-    stanzaAnnotation = {"graph" : graph_elements, "conllu" : conllu}
 
-    print(conllu)
+    stanzaAnnotation = {"graph" : graph_elements, "conllu" : "{:C}".format(doc)}
+
+    print("{:C}".format(doc))
     print(json.dumps(stgraph))
 
     # return doc.to_dict()
